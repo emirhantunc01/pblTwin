@@ -15,28 +15,28 @@ public class Maze {
     }
 
     public void createMaze() {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                if (i == 0 || i == rows - 1 || j == 0 || j == cols - 1) {
-                    maze[i][j] = '#';
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (r == 0 || r == rows - 1 || c == 0 || c == cols - 1) {
+                    maze[r][c] = '#';
                 } else {
-                    maze[i][j] = ' ';
+                    maze[r][c] = ' ';
                 }
             }
         }
     }
     public void render() {
 
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                console.getTextWindow().output(j, i, maze[i][j]);
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                console.getTextWindow().output(c, r, maze[r][c]);
             }
         }
     }
     public boolean isValidMove(int r, int c) {
-        // Sınır ve duvar kontrolü
+
         if (r < 0 || r >= rows || c < 0 || c >= cols) return false;
-        if (maze[r][c] == '#') return false; // Duvar kontrolü
+        if (maze[r][c] == '#') return false;
         return true;
     }
     public char[][] getMazeData () {
