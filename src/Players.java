@@ -8,7 +8,7 @@ public class Players {
     private int bRow,bCol;
     private int life = 1000;
     private int score = 0;
-    private int mode = -1;
+    private int mode = 1;
     private Console console;
 
     public Players(Console console, int startRow, int startCol) {

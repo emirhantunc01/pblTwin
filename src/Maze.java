@@ -1,6 +1,4 @@
 import enigma.console.Console;
-import enigma.core.Enigma;
-import java.util.Random;
 
 public class Maze {
 
@@ -14,7 +12,7 @@ public class Maze {
         this.maze = new char[rows][cols];
     }
 
-    public void createMaze() {
+    public void initMaze() {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 if (r == 0 || r == rows - 1 || c == 0 || c == cols - 1) {
@@ -35,7 +33,7 @@ public class Maze {
     }
     public boolean isValidMove(int r, int c) {
 
-        if (r < 0 || r >= rows || c < 0 || c >= cols) return false;
+        if (r < 0 || r >=rows || c < 0 || c >= cols) return false;
         if (maze[r][c] == '#') return false;
         return true;
     }
