@@ -4,57 +4,68 @@ import enigma.console.TextAttributes;
 import java.awt.Color;
 
 public class RobotX {
-    private int life = 1000;
-    private int score = 0;
-    Random rnd = new Random();
-    private int initRow = rnd.nextInt(1,23);
-    private int initCol = rnd.nextInt(1,53);
-    private Console console;
+    private int x, y;
+    private int direction;
+    private Console cn;
+    private Random rnd = new Random();
+    private TextAttributes colorX = new TextAttributes(Color.YELLOW, Color.BLACK);
 
-
-    public RobotX(Console console){
-        this.console = console;
+//
+    public RobotX(Console cn) {
+        this.cn = cn;
+        do {
+            x = rnd.nextInt(Maze.COLS - 2) + 1;
+            y = rnd.nextInt(Maze.ROWS - 2) + 1;
+        } while (Maze.map[y][x] == '#');
+        direction = rnd.nextInt(4);
     }
-    public void render(){
-        TextAttributes attr;
-        attr = new TextAttributes(Color.YELLOW, Color.BLACK);
-        console.getTextWindow().output(initCol, initRow, 'X',attr);
-    }
-    public void move(Maze maze) throws InterruptedException {
-        while(true){
-            int direction = rnd.nextInt(1,5);
-            if(direction == 1){
-                if(maze.isValidMove(initRow -1 ,initCol)) {
-                    clear();
-                    initRow--; //up
-                }
-            }
-            else if(direction==2){
-                if(maze.isValidMove(initRow+1,initCol)){
-                    clear();
-                    initRow++;//down
-                }
-            }
-            else if(direction == 3){
-                if(maze.isValidMove(initRow,initCol+1)){
-                    clear();
-                    initCol++;//right
-                }
-            }
-            else{
-                if(maze.isValidMove(initRow,initCol-1)){
-                    clear();
-                    initCol--;//left
-                }
-            }
-            render();
-            Thread.sleep(200);
 
+
+    public RobotX(Console cn, int startX, int startY) {
+        this.cn = cn;
+        this.x = startX;
+        this.y = startY;
+        this.direction = rnd.nextInt(4);
+    }
+
+    public void move() {
+
+        if (rnd.nextInt(100) < 25) {
+            direction = rnd.nextInt(4);
+        }
+
+        int nextX = x;
+        int nextY = y;
+
+        if (direction == 0) nextX++;
+        else if (direction == 1) nextY++;
+        else if (direction == 2) nextX--;
+        else if (direction == 3) nextY--;
+
+        if (isValidMove(nextX, nextY)) {
+            erase();
+            x = nextX;
+            y = nextY;
+            draw();
+        } else {
+            direction = rnd.nextInt(4);
         }
     }
 
-    private void clear() {
-        console.getTextWindow().output(initCol, initRow, ' ');
-        console.getTextWindow().output(initCol, initRow, ' ');
+    private boolean isValidMove(int nx, int ny) {
+        if (nx < 0 || nx >= Maze.COLS || ny < 0 || ny >= Maze.ROWS) return false;
+        if (Maze.map[ny][nx] == '#') return false;
+        return true;
     }
+
+    public void draw() {
+        cn.getTextWindow().output(x, y, 'X', colorX);
+    }
+
+    public void erase() {
+        cn.getTextWindow().output(x, y, ' ');
+    }
+
+    public int getX() { return x; }
+    public int getY() { return y; }
 }

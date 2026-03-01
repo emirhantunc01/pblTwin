@@ -46,7 +46,7 @@ public class Maze {
                     }
                 }
                 placeWall(startY, startX, length, direction);
-
+//
                 if (!checkArea()) {
                     for(int i=0; i<ROWS; i++) {
                         for(int j=0; j<COLS; j++) {

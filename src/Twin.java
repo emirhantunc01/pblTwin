@@ -103,7 +103,7 @@ public class Twin {
         } while (Maze.map[y][x] == '#' || isOccupied(x, y));
 
         int chance = rnd.nextInt(11);
-
+//
         // Hazineler ve Lazer
         if (chance <= 1) spawnItem(x, y, '1');      // 1-Hazine
         else if (chance <= 3) spawnItem(x, y, '2'); // 2-Hazine

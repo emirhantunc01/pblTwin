@@ -22,7 +22,7 @@ public class Player {
     public Player(Console cn, Maze maze) {
         this.cn = cn;
         this.maze = maze;
-
+//
         ax = 5; ay = 5;
         while(Maze.map[ay][ax] == '#') {
             ax++;

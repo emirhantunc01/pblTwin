@@ -7,7 +7,7 @@ public class Item {
     private char type; // '1', '2', '3', '@'
     private int scoreValue;
     private Console cn;
-
+//
     private static TextAttributes colorTreasure = new TextAttributes(Color.YELLOW, Color.BLACK);
     private static TextAttributes colorLaser = new TextAttributes(Color.CYAN, Color.BLACK);
 
