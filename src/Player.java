@@ -11,10 +11,8 @@ public class Player {
     private int score = 0;
     private int mode = 1;
 
-
     private Console cn;
     private Maze maze;
-
 
     private TextAttributes colorGreen = new TextAttributes(Color.GREEN, Color.BLACK);
     private TextAttributes colorMagenta = new TextAttributes(Color.MAGENTA, Color.BLACK);
@@ -22,11 +20,15 @@ public class Player {
     public Player(Console cn, Maze maze) {
         this.cn = cn;
         this.maze = maze;
-//
-        ax = 5; ay = 5;
-        while(Maze.map[ay][ax] == '#') {
+        //
+        ax = 5;
+        ay = 5;
+        while (Maze.map[ay][ax] == '#') {
             ax++;
-            if(ax >= Maze.COLS - 1) { ax = 1; ay++; }
+            if (ax >= Maze.COLS - 1) {
+                ax = 1;
+                ay++;
+            }
         }
 
         bx = ax;
@@ -37,12 +39,17 @@ public class Player {
         int dx = 0;
         int dy = 0;
 
-        if(key == KeyEvent.VK_LEFT) dx = -1;
-        else if(key == KeyEvent.VK_RIGHT) dx = 1;
-        else if(key == KeyEvent.VK_UP) dy = -1;
-        else if(key == KeyEvent.VK_DOWN) dy = 1;
+        if (key == KeyEvent.VK_LEFT)
+            dx = -1;
+        else if (key == KeyEvent.VK_RIGHT)
+            dx = 1;
+        else if (key == KeyEvent.VK_UP)
+            dy = -1;
+        else if (key == KeyEvent.VK_DOWN)
+            dy = 1;
 
-        if (dx == 0 && dy == 0) return;
+        if (dx == 0 && dy == 0)
+            return;
 
         erase();
 
@@ -75,10 +82,11 @@ public class Player {
         cn.getTextWindow().output(ax, ay, ' ');
     }
 
-
     private boolean isValidMove(int x, int y) {
-        if (x < 0 || x >= Maze.COLS || y < 0 || y >= Maze.ROWS) return false;
-        if (Maze.map[y][x] == '#') return false;
+        if (x < 0 || x >= Maze.COLS || y < 0 || y >= Maze.ROWS)
+            return false;
+        if (Maze.map[y][x] == '#')
+            return false;
 
         return true;
     }
@@ -88,7 +96,11 @@ public class Player {
         draw();
     }
 
+    public int getScore() {
+        return score;
+    }
 
-    public int getScore() { return score; }
-    public int getLife() { return life; }
+    public int getLife() {
+        return life;
+    }
 }

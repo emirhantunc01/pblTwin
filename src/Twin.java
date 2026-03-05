@@ -5,9 +5,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import enigma.console.Console;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Twin {
-    public Console cn = Enigma.getConsole("Twins Game", 100, 30, 20);
+    public Console cn;
     public TextMouseListener tmlis;
     public KeyListener klis;
 
@@ -33,56 +34,122 @@ public class Twin {
 
     public Twin() throws Exception {
 
+        // --- Başlangıç Menüsü ---
+        Scanner scanner = new Scanner(System.in);
+        boolean mazeReady = false;
+
+        while (!mazeReady) {
+            System.out.println("========================================");
+            System.out.println("           TWINS GAME");
+            System.out.println("========================================");
+            System.out.println("  1 - Rastgele Labirent Olustur");
+            System.out.println("  2 - Dosyadan Labirent Yukle (.txt)");
+            System.out.println("========================================");
+            System.out.print("  Seciminiz (1/2): ");
+
+            int choice = 0;
+            if (scanner.hasNextInt()) {
+                choice = scanner.nextInt();
+            }
+            scanner.nextLine(); // satır sonu temizle
+
+            if (choice == 1) {
+                maze = new Maze();
+                maze.generateMaze();
+                System.out.println("  Rastgele labirent olusturuldu!");
+                mazeReady = true;
+
+            } else if (choice == 2) {
+                System.out.print("  Dosya yolunu girin: ");
+                String path = scanner.nextLine().trim();
+
+                try {
+                    maze = Maze.loadFromFile(path);
+                    String error = maze.validate();
+                    if (error != null) {
+                        System.out.println("  " + error);
+                        System.out.println("  Lutfen gecerli bir dosya ile tekrar deneyin.\n");
+                    } else {
+                        System.out.println("  Labirent basariyla yuklendi!");
+                        mazeReady = true;
+                    }
+                } catch (Exception e) {
+                    System.out.println("  Hata: Dosya okunamadi! (" + e.getMessage() + ")");
+                    System.out.println("  Lutfen gecerli bir dosya yolu girin.\n");
+                }
+
+            } else {
+                System.out.println("  Gecersiz secim! Lutfen 1 veya 2 girin.\n");
+            }
+        }
+        scanner.close();
+        // --- Enigma Konsol Penceresi ---
+        cn = Enigma.getConsole("Twins Game", 100, 30, 20);
 
         tmlis = new TextMouseListener() {
-            public void mouseClicked(TextMouseEvent arg0) {}
-            public void mousePressed(TextMouseEvent arg0) {
-                if(mousepr==0) { mousepr=1; mousex=arg0.getX(); mousey=arg0.getY(); }
+            public void mouseClicked(TextMouseEvent arg0) {
             }
-            public void mouseReleased(TextMouseEvent arg0) {}
+
+            public void mousePressed(TextMouseEvent arg0) {
+                if (mousepr == 0) {
+                    mousepr = 1;
+                    mousex = arg0.getX();
+                    mousey = arg0.getY();
+                }
+            }
+
+            public void mouseReleased(TextMouseEvent arg0) {
+            }
         };
         cn.getTextWindow().addTextMouseListener(tmlis);
 
         klis = new KeyListener() {
-            public void keyTyped(KeyEvent e) {}
-            public void keyPressed(KeyEvent e) {
-                if(keypr==0) { keypr=1; rkey=e.getKeyCode(); }
+            public void keyTyped(KeyEvent e) {
             }
-            public void keyReleased(KeyEvent e) {}
+
+            public void keyPressed(KeyEvent e) {
+                if (keypr == 0) {
+                    keypr = 1;
+                    rkey = e.getKeyCode();
+                }
+            }
+
+            public void keyReleased(KeyEvent e) {
+            }
         };
         cn.getTextWindow().addKeyListener(klis);
 
-        maze = new Maze();
-        maze.generateMaze();
         maze.draw(cn);
 
         player = new Player(cn, maze);
         player.draw();
 
-        for(int i=0; i<10; i++) {
-            addRandomInput();
+        for (int i = 0; i < 10; i++) {
+            addRandomSpawn();
         }
 
         // --- Game Loop ---
-        while(true) {
+        while (true) {
 
-            if(keypr==1) {
-                if(rkey == KeyEvent.VK_M) player.switchMode();
-                else player.move(rkey);
-                keypr=0;
+            if (keypr == 1) {
+                if (rkey == KeyEvent.VK_M)
+                    player.switchMode();
+                else
+                    player.move(rkey);
+                keypr = 0;
             }
 
             loopCounter++;
 
-            if(loopCounter % 4 == 0) {
+            if (loopCounter % 4 == 0) {
 
-                for(int i = 0; i < robotCount; i++) {
+                for (int i = 0; i < robotCount; i++) {
                     robots[i].move();
                 }
             }
 
-            if(loopCounter % 20 == 0) {
-                addRandomInput();
+            if (loopCounter % 20 == 0) {
+                addRandomSpawn();
                 cn.getTextWindow().setCursorPosition(55, 0);
                 cn.getTextWindow().output("Time: " + (loopCounter / 20));
             }
@@ -91,10 +158,10 @@ public class Twin {
         }
     }
 
+    public void addRandomSpawn() {
 
-    public void addRandomInput() {
-
-        if (itemCount >= MAX_ITEMS || robotCount >= MAX_ROBOTS) return;
+        if (itemCount >= MAX_ITEMS || robotCount >= MAX_ROBOTS)
+            return;
 
         int x, y;
         do {
@@ -103,16 +170,21 @@ public class Twin {
         } while (Maze.map[y][x] == '#' || isOccupied(x, y));
 
         int chance = rnd.nextInt(11);
-//
+        //
         // Hazineler ve Lazer
-        if (chance <= 1) spawnItem(x, y, '1');      // 1-Hazine
-        else if (chance <= 3) spawnItem(x, y, '2'); // 2-Hazine
-        else if (chance <= 5) spawnItem(x, y, '3'); // 3-Hazine
-        else if (chance <= 8) spawnItem(x, y, '@'); // Lazer
+        if (chance <= 1)
+            spawnItem(x, y, '1'); // 1-Hazine
+        else if (chance <= 3)
+            spawnItem(x, y, '2'); // 2-Hazine
+        else if (chance <= 5)
+            spawnItem(x, y, '3'); // 3-Hazine
+        else if (chance <= 8)
+            spawnItem(x, y, '@'); // Lazer
 
-
-        else if (chance == 9) spawnRobotX(x, y);
-        else spawnRobotX(x, y);                     // X-Robot
+        else if (chance == 9)
+            spawnRobotX(x, y);
+        else
+            spawnRobotX(x, y); // X-Robot
     }
 
     // Hazine Ekleme
@@ -139,11 +211,13 @@ public class Twin {
     private boolean isOccupied(int x, int y) {
         // Hazineleri kontrol et
         for (int i = 0; i < itemCount; i++) {
-            if (items[i].getX() == x && items[i].getY() == y) return true;
+            if (items[i].getX() == x && items[i].getY() == y)
+                return true;
         }
         // Robotları kontrol et
         for (int i = 0; i < robotCount; i++) {
-            if (robots[i].getX() == x && robots[i].getY() == y) return true;
+            if (robots[i].getX() == x && robots[i].getY() == y)
+                return true;
         }
         // Oyuncu kontrolü (Şimdilik es geçildi)
         return false;
