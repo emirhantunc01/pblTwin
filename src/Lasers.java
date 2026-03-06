@@ -76,9 +76,22 @@ public class Lasers {
     // METHOD: fireLaser
     // ==========================================================
     // WHEN TO CALL: When the player presses the SPACE key.
-    // WHAT IT DOES: Calculates a straight line from A to B,
-    //               and stores those positions in the queue.
+    // WHAT IT DOES: Calculates an L-shaped path from A to B
+    //               using the Manhattan algorithm, and stores
+    //               those positions in the queue.
     //               The '+' blocks will spread one per time unit.
+    //
+    // HOW MANHATTAN WORKS:
+    //   Instead of a diagonal straight line, we move in two steps:
+    //   Step 1: Move horizontally from A to B's x position
+    //   Step 2: Move vertically from A's y to B's y position
+    //   This creates an L-shaped path, like walking city blocks.
+    //
+    //   Example (A at top-left, B at bottom-right):
+    //   A + + + + .
+    //             +
+    //             +
+    //             B
     //
     // PARAMETERS:
     //   ax, ay = position of player A (start point)
@@ -101,118 +114,62 @@ public class Lasers {
         // --- Use one packed laser ---
         packedLaserCount--;
 
-        // --- CALCULATE THE LINE FROM A TO B ---
-        // We use Bresenham's line algorithm.
-        // Don't worry, I'll explain every step.
-        //
-        // Bresenham's algorithm finds all the grid squares
-        // that a straight line passes through.
-        // Think of it like drawing a line on graph paper
-        // and marking every square the line touches.
+        // --- CALCULATE THE L-SHAPED PATH FROM A TO B ---
+        // We use the Manhattan algorithm.
+        // First go horizontally (left or right) until we reach B's x.
+        // Then go vertically (up or down) until we reach B's y.
 
         // Reset the queue
         queueSize  = 0;
         queueIndex = 0;
 
-        // dx = horizontal distance from A to B
-        // dy = vertical distance from A to B
-        int dx = bx - ax;
-        int dy = by - ay;
-
-        // We need the absolute values (always positive)
-        // Math.abs(-5) = 5, Math.abs(3) = 3
-        int absDx = Math.abs(dx);
-        int absDy = Math.abs(dy);
-
-        // stepX = which direction to move horizontally (+1 = right, -1 = left)
-        // stepY = which direction to move vertically (+1 = down, -1 = up)
-        int stepX;
-        if (dx > 0) {
-            stepX = 1;    // B is to the right of A
-        } else if (dx < 0) {
-            stepX = -1;   // B is to the left of A
-        } else {
-            stepX = 0;    // B is directly above or below A
-        }
-
-        int stepY;
-        if (dy > 0) {
-            stepY = 1;    // B is below A
-        } else if (dy < 0) {
-            stepY = -1;   // B is above A
-        } else {
-            stepY = 0;    // B is directly left or right of A
-        }
-
-        // --- BRESENHAM'S LINE ALGORITHM ---
-        // This part traces the line from A to B, step by step.
-        //
-        // 'error' helps us decide when to step in the shorter axis.
-        // Imagine walking along the longer axis one step at a time,
-        // and sometimes taking a step in the shorter axis too.
+        // --- STEP 1: Move horizontally from ax to bx ---
+        // currentX starts at A's x position
+        // We move one step at a time toward B's x
+        // Y stays the same as A's y during this phase
 
         int currentX = ax;
-        int currentY = ay;
 
-        // We skip the starting position (A's position)
-        // because we don't want a '+' on top of A.
+        while (currentX != bx) {
 
-        if (absDx >= absDy) {
-            // --- HORIZONTAL LINE IS LONGER (or equal) ---
-            // We step one column at a time, sometimes stepping a row too.
-
-            // error starts at half the horizontal distance
-            int error = absDx / 2;
-
-            // Loop once for each horizontal step
-            for (int i = 0; i < absDx; i++) {
-
-                // Move one step horizontally
-                currentX = currentX + stepX;
-
-                // Accumulate error in the vertical direction
-                error = error + absDy;
-
-                // If error exceeds the horizontal distance,
-                // we also take a vertical step
-                if (error >= absDx) {
-                    currentY = currentY + stepY;
-                    error = error - absDx;
-                }
-
-                // Add this position to the queue
-                if (queueSize < MAX_QUEUE) {
-                    queueX[queueSize] = currentX;
-                    queueY[queueSize] = currentY;
-                    queueSize++;
-                }
+            // Move one step in the direction of bx
+            if (bx > currentX) {
+                currentX++;   // B is to the right, move right
+            } else {
+                currentX--;   // B is to the left, move left
             }
 
-        } else {
-            // --- VERTICAL LINE IS LONGER ---
-            // We step one row at a time, sometimes stepping a column too.
+            // Add this position to the queue
+            // Y is still ay because we haven't started moving vertically yet
+            if (queueSize < MAX_QUEUE) {
+                queueX[queueSize] = currentX;
+                queueY[queueSize] = ay;
+                queueSize++;
+            }
+        }
 
-            int error = absDy / 2;
+        // --- STEP 2: Move vertically from ay to by ---
+        // currentY starts at A's y position
+        // We move one step at a time toward B's y
+        // X is now fixed at bx (we already reached it in step 1)
 
-            for (int i = 0; i < absDy; i++) {
+        int currentY = ay;
 
-                // Move one step vertically
-                currentY = currentY + stepY;
+        while (currentY != by) {
 
-                // Accumulate error in the horizontal direction
-                error = error + absDx;
+            // Move one step in the direction of by
+            if (by > currentY) {
+                currentY++;   // B is below, move down
+            } else {
+                currentY--;   // B is above, move up
+            }
 
-                if (error >= absDy) {
-                    currentX = currentX + stepX;
-                    error = error - absDy;
-                }
-
-                // Add this position to the queue
-                if (queueSize < MAX_QUEUE) {
-                    queueX[queueSize] = currentX;
-                    queueY[queueSize] = currentY;
-                    queueSize++;
-                }
+            // Add this position to the queue
+            // X is now bx because we finished the horizontal movement
+            if (queueSize < MAX_QUEUE) {
+                queueX[queueSize] = bx;
+                queueY[queueSize] = currentY;
+                queueSize++;
             }
         }
 
