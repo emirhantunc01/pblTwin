@@ -103,4 +103,17 @@ public class Player {
     public int getLife() {
         return life;
     }
+
+    public int getAX() { return ax; }
+    public int getAY() { return ay; }
+    public int getBX() { return bx; }
+    public int getBY() { return by; }
+
+    public void addScore(int points) {
+        score += points;
+    }
+
+    public void addLife(int amount) {
+        life += amount;
+    }
 }
