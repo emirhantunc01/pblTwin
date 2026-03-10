@@ -19,6 +19,7 @@ public class Twin {
 
     public Maze maze;
     public Player player;
+    public Laser laser;
 
     public static final int MAX_ITEMS = 100;
     public static final int MAX_ROBOTS = 50;
@@ -83,7 +84,7 @@ public class Twin {
             }
         }
         scanner.close();
-        // --- Enigma Konsol Penceresi ---
+        // --- Enigma---
         cn = Enigma.getConsole("Twins Game", 100, 30, 20);
 
         tmlis = new TextMouseListener() {
@@ -124,6 +125,8 @@ public class Twin {
         player = new Player(cn, maze);
         player.draw();
 
+        laser = new Laser(cn);
+
         for (int i = 0; i < 10; i++) {
             addRandomSpawn();
         }
@@ -134,10 +137,15 @@ public class Twin {
             if (keypr == 1) {
                 if (rkey == KeyEvent.VK_M)
                     player.switchMode();
+                else if (rkey == KeyEvent.VK_SPACE)
+                    laser.fire(player.getAX(), player.getAY(), player.getBX(), player.getBY());
                 else
                     player.move(rkey);
                 keypr = 0;
             }
+
+            checkItemPickup();
+            laser.update();
 
             loopCounter++;
 
@@ -150,9 +158,16 @@ public class Twin {
 
             if (loopCounter % 20 == 0) {
                 addRandomSpawn();
-                cn.getTextWindow().setCursorPosition(55, 0);
-                cn.getTextWindow().output("Time: " + (loopCounter / 20));
             }
+
+            cn.getTextWindow().setCursorPosition(55, 0);
+            cn.getTextWindow().output("Time : " + (loopCounter / 20) + "  ");
+            cn.getTextWindow().setCursorPosition(55, 3);
+            cn.getTextWindow().output("P.Score: " + player.getScore() + "  ");
+            cn.getTextWindow().setCursorPosition(55, 4);
+            cn.getTextWindow().output("P.Life : " + player.getLife() + "  ");
+            cn.getTextWindow().setCursorPosition(55, 5);
+            cn.getTextWindow().output("P.Laser: " + laser.getPackedCount() + "  ");
 
             Thread.sleep(50);
         }
@@ -171,15 +186,15 @@ public class Twin {
 
         int chance = rnd.nextInt(11);
         //
-        // Hazineler ve Lazer
+        // Treasures and Laser
         if (chance <= 1)
-            spawnItem(x, y, '1'); // 1-Hazine
+            spawnItem(x, y, '1'); // Treasure-1
         else if (chance <= 3)
-            spawnItem(x, y, '2'); // 2-Hazine
+            spawnItem(x, y, '2'); // Treasure-2
         else if (chance <= 5)
-            spawnItem(x, y, '3'); // 3-Hazine
+            spawnItem(x, y, '3'); // Treasure-3
         else if (chance <= 8)
-            spawnItem(x, y, '@'); // Lazer
+            spawnItem(x, y, '@'); // Laser
 
         else if (chance == 9)
             spawnRobotX(x, y);
@@ -187,7 +202,7 @@ public class Twin {
             spawnRobotX(x, y); // X-Robot
     }
 
-    // Hazine Ekleme
+    // Adding treasure
     private void spawnItem(int x, int y, char type) {
         if (itemCount < MAX_ITEMS) {
             Item item = new Item(x, y, type, cn);
@@ -197,7 +212,7 @@ public class Twin {
         }
     }
 
-    // Robot Ekleme
+    // Adding robot
     private void spawnRobotX(int x, int y) {
         if (robotCount < MAX_ROBOTS) {
             RobotX bot = new RobotX(cn, x, y);
@@ -207,19 +222,50 @@ public class Twin {
         }
     }
 
-    // Koordinat Dolu mu
+    private void checkItemPickup() {
+        int ax = player.getAX();
+        int ay = player.getAY();
+        int bx = player.getBX();
+        int by = player.getBY();
+
+        for (int i = 0; i < itemCount; i++) {
+            int ix = items[i].getX();
+            int iy = items[i].getY();
+            boolean touchedA = (ix == ax && iy == ay);
+            boolean touchedB = (ix == bx && iy == by);
+
+            if (touchedA || touchedB) {
+                char type = items[i].getType();
+
+                if (type == '@') {
+                    laser.addPacked();
+                } else if (type == '1') {
+                    player.addScore(3);
+                } else if (type == '2') {
+                    player.addScore(10);
+                } else if (type == '3') {
+                    player.addScore(30);
+                }
+
+                itemCount--;
+                items[i] = items[itemCount];
+                i--;
+            }
+        }
+    }
+
     private boolean isOccupied(int x, int y) {
-        // Hazineleri kontrol et
+        // check trasures
         for (int i = 0; i < itemCount; i++) {
             if (items[i].getX() == x && items[i].getY() == y)
                 return true;
         }
-        // Robotları kontrol et
+        // check robots
         for (int i = 0; i < robotCount; i++) {
             if (robots[i].getX() == x && robots[i].getY() == y)
                 return true;
         }
-        // Oyuncu kontrolü (Şimdilik es geçildi)
+
         return false;
     }
 }
