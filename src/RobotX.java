@@ -6,6 +6,8 @@ import java.awt.Color;
 public class RobotX {
     private int x, y;
     private int direction;
+    private int life = 1000;
+    private int score = 0;
     private Console cn;
     private Random rnd = new Random();
     private TextAttributes colorX = new TextAttributes(Color.YELLOW, Color.BLACK);
@@ -68,4 +70,14 @@ public class RobotX {
 
     public int getX() { return x; }
     public int getY() { return y; }
+    public int getLife() { return life; }
+    public int getScore() { return score; }
+
+    public void addScore(int points) {
+        score += points;
+    }
+
+    public void addLife(int amount) {
+        life += amount;
+    }
 }

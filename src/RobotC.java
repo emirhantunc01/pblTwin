@@ -6,6 +6,8 @@ import java.util.Random;
 public class RobotC {
     private int x, y;
     private int direction;
+    private int life = 1000;
+    private int score = 0;
     private Console cn;
     private Random rnd = new Random();
     private TextAttributes colorC = new TextAttributes(Color.CYAN, Color.BLACK);
@@ -27,46 +29,70 @@ public class RobotC {
 
     public int getX() { return x; }
     public int getY() { return y; }
+    public int getLife() { return life; }
+    public int getScore() { return score; }
 
-    private boolean isValidMove(int nx, int ny) {
+    public void addScore(int points) {
+        score += points;
+    }
+
+    public void addLife(int amount) {
+        life += amount;
+    }
+
+    private boolean isValidMove(int nx, int ny, RobotX[] robots, int robotCount,
+                                 RobotC[] robotsC, int robotCCount) {
         if (nx < 0 || nx >= Maze.COLS || ny < 0 || ny >= Maze.ROWS) return false;
         if (Maze.map[ny][nx] == '#') return false;
+
+        // Diğer RobotX'lerle çarpışma
+        for (int i = 0; i < robotCount; i++) {
+            if (robots[i].getX() == nx && robots[i].getY() == ny) return false;
+        }
+        // Diğer RobotC'lerle çarpışma (kendisi hariç)
+        for (int i = 0; i < robotCCount; i++) {
+            if (robotsC[i] == this) continue;
+            if (robotsC[i].getX() == nx && robotsC[i].getY() == ny) return false;
+        }
+
         return true;
     }
 
-    public void move(int playerAX, int playerAY, int playerBX, int playerBY) {
-        // Hem A hem B'ye olan Öklid mesafesini hesapla
-        double distA = Math.sqrt((x - playerAX) * (x - playerAX) + (y - playerAY) * (y - playerAY));
-        double distB = Math.sqrt((x - playerBX) * (x - playerBX) + (y - playerBY) * (y - playerBY));
+    public void move(Item[] items, int itemCount, RobotX[] robots, int robotCount,
+                     RobotC[] robotsC, int robotCCount) {
 
-        // Yakın olanı hedef al
-        int targetX, targetY;
-        double dist;
-        if (distA <= distB) {
-            targetX = playerAX;
-            targetY = playerAY;
-            dist = distA;
-        } else {
-            targetX = playerBX;
-            targetY = playerBY;
-            dist = distB;
+        // En yakın hazineyi Manhattan mesafesiyle bul ('1', '2', '3')
+        int bestDist = Integer.MAX_VALUE;
+        int targetX = -1;
+        int targetY = -1;
+
+        for (int i = 0; i < itemCount; i++) {
+            char type = items[i].getType();
+            if (type == '1' || type == '2' || type == '3') {
+                int dist = Math.abs(x - items[i].getX()) + Math.abs(y - items[i].getY());
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    targetX = items[i].getX();
+                    targetY = items[i].getY();
+                }
+            }
         }
 
         int nextX = x;
         int nextY = y;
 
-        if (dist <= 5.0) {
-            // Hedeften uzaklaşma modu
+        if (targetX != -1) {
+            // Hedefe doğru yönlü hareket
             int dx = 0;
             int dy = 0;
-            if (x - targetX > 0) dx = 1;
-            else if (x - targetX < 0) dx = -1;
-            if (y - targetY > 0) dy = 1;
-            else if (y - targetY < 0) dy = -1;
+            if (targetX > x) dx = 1;
+            else if (targetX < x) dx = -1;
+            if (targetY > y) dy = 1;
+            else if (targetY < y) dy = -1;
 
             // Önce tercih edilen yönde dene, geçersizse diğerlerini sırayla dene
             int[][] tries = {
-                {dx, 0}, {0, dy}, {-dx, 0}, {0, -dy}
+                {dx, 0}, {0, dy}, {0, -dy}, {-dx, 0}
             };
 
             boolean moved = false;
@@ -74,7 +100,7 @@ public class RobotC {
                 if (t[0] == 0 && t[1] == 0) continue;
                 nextX = x + t[0];
                 nextY = y + t[1];
-                if (isValidMove(nextX, nextY)) {
+                if (isValidMove(nextX, nextY, robots, robotCount, robotsC, robotCCount)) {
                     erase();
                     x = nextX;
                     y = nextY;
@@ -83,12 +109,11 @@ public class RobotC {
                     break;
                 }
             }
-            // Hiçbir yön geçerli değilse yerinde kal
             if (!moved) {
-                // yerinde kal
+                // Yerinde kal
             }
         } else {
-            // RobotX gibi rastgele hareket
+            // Hazine yoksa RobotX gibi rastgele hareket
             if (rnd.nextInt(100) < 25) {
                 direction = rnd.nextInt(4);
             }
@@ -98,7 +123,7 @@ public class RobotC {
             else if (direction == 2) nextX = x - 1;
             else if (direction == 3) nextY = y - 1;
 
-            if (isValidMove(nextX, nextY)) {
+            if (isValidMove(nextX, nextY, robots, robotCount, robotsC, robotCCount)) {
                 erase();
                 x = nextX;
                 y = nextY;

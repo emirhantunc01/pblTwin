@@ -135,7 +135,8 @@ public class Twin {
         }
 
         // --- Game Loop ---
-        while (true) {
+        boolean gameRunning = true;
+        while (gameRunning) {
 
             if (keypr == 1) {
                 if (rkey == KeyEvent.VK_M)
@@ -148,8 +149,16 @@ public class Twin {
             }
 
             checkItemPickup();
+            checkRobotItemPickup();
             laser.update();
             checkLaserRobotCollision();
+            checkRobotPlayerDamage();
+
+            // Game Over kontrolü
+            if (player.getLife() <= 0) {
+                gameRunning = false;
+                break;
+            }
 
             loopCounter++;
 
@@ -159,7 +168,7 @@ public class Twin {
                     robots[i].move();
                 }
                 for (int i = 0; i < robotCCount; i++) {
-                    robotsC[i].move(player.getAX(), player.getAY(), player.getBX(), player.getBY());
+                    robotsC[i].move(items, itemCount, robots, robotCount, robotsC, robotCCount);
                 }
             }
 
@@ -176,8 +185,35 @@ public class Twin {
             cn.getTextWindow().setCursorPosition(55, 5);
             cn.getTextWindow().output("P.Laser: " + laser.getPackedCount() + "  ");
 
+            // C-Robot bilgileri
+            int totalCScore = 0;
+            int totalCLife = 0;
+            for (int i = 0; i < robotCCount; i++) {
+                totalCScore += robotsC[i].getScore();
+                totalCLife += robotsC[i].getLife();
+            }
+            // X-Robot bilgileri
+            int totalXScore = 0;
+            int totalXLife = 0;
+            for (int i = 0; i < robotCount; i++) {
+                totalXScore += robots[i].getScore();
+                totalXLife += robots[i].getLife();
+            }
+            cn.getTextWindow().setCursorPosition(55, 7);
+            cn.getTextWindow().output("AI.Score: " + (totalCScore + totalXScore) + "  ");
+            cn.getTextWindow().setCursorPosition(55, 8);
+            cn.getTextWindow().output("AI.Life : " + (totalCLife + totalXLife) + "  ");
+            cn.getTextWindow().setCursorPosition(55, 9);
+            cn.getTextWindow().output("AI.Count: " + (robotCCount + robotCount) + "  ");
+
             Thread.sleep(50);
         }
+
+        // Game Over ekranı
+        cn.getTextWindow().setCursorPosition(20, 12);
+        cn.getTextWindow().output("========== GAME OVER ==========");
+        cn.getTextWindow().setCursorPosition(20, 13);
+        cn.getTextWindow().output("  Final Score: " + player.getScore() + "  ");
     }
 
     public void addRandomSpawn() {
@@ -294,20 +330,104 @@ public class Twin {
     }
 
     private void checkLaserRobotCollision() {
+        // RobotX: lazer temas halinde 50 HP hasar/tick
         for (int i = 0; i < robotCount; i++) {
             if (laser.isNeighborToLaser(robots[i].getX(), robots[i].getY())) {
-                robots[i].erase();
-                robotCount--;
-                robots[i] = robots[robotCount];
-                i--;
+                robots[i].addLife(-50);
+                if (robots[i].getLife() <= 0) {
+                    robots[i].erase();
+                    player.addScore(100);
+                    robotCount--;
+                    robots[i] = robots[robotCount];
+                    i--;
+                }
             }
         }
+        // RobotC: lazer temas halinde 50 HP hasar/tick
         for (int i = 0; i < robotCCount; i++) {
             if (laser.isNeighborToLaser(robotsC[i].getX(), robotsC[i].getY())) {
-                robotsC[i].erase();
-                robotCCount--;
-                robotsC[i] = robotsC[robotCCount];
-                i--;
+                robotsC[i].addLife(-50);
+                if (robotsC[i].getLife() <= 0) {
+                    robotsC[i].erase();
+                    player.addScore(100);
+                    robotCCount--;
+                    robotsC[i] = robotsC[robotCCount];
+                    i--;
+                }
+            }
+        }
+    }
+
+    private void checkRobotItemPickup() {
+        // C-Robot hazine toplama
+        for (int r = 0; r < robotCCount; r++) {
+            int rx = robotsC[r].getX();
+            int ry = robotsC[r].getY();
+            for (int i = 0; i < itemCount; i++) {
+                if (items[i].getX() == rx && items[i].getY() == ry) {
+                    char type = items[i].getType();
+                    // Hazineler bilgisayar için 3x değerli
+                    if (type == '1') {
+                        robotsC[r].addScore(9);   // 3 * 3
+                    } else if (type == '2') {
+                        robotsC[r].addScore(30);  // 10 * 3
+                    } else if (type == '3') {
+                        robotsC[r].addScore(90);  // 30 * 3
+                    }
+                    if (type != '@') {
+                        itemCount--;
+                        items[i] = items[itemCount];
+                        i--;
+                    }
+                }
+            }
+        }
+        // X-Robot hazine toplama
+        for (int r = 0; r < robotCount; r++) {
+            int rx = robots[r].getX();
+            int ry = robots[r].getY();
+            for (int i = 0; i < itemCount; i++) {
+                if (items[i].getX() == rx && items[i].getY() == ry) {
+                    char type = items[i].getType();
+                    // Hazineler bilgisayar için 3x değerli
+                    if (type == '1') {
+                        robots[r].addScore(9);   // 3 * 3
+                    } else if (type == '2') {
+                        robots[r].addScore(30);  // 10 * 3
+                    } else if (type == '3') {
+                        robots[r].addScore(90);  // 30 * 3
+                    }
+                    if (type != '@') {
+                        itemCount--;
+                        items[i] = items[itemCount];
+                        i--;
+                    }
+                }
+            }
+        }
+    }
+
+    private void checkRobotPlayerDamage() {
+        int ax = player.getAX();
+        int ay = player.getAY();
+        // C-Robot → Player A hasar
+        for (int i = 0; i < robotCCount; i++) {
+            int rx = robotsC[i].getX();
+            int ry = robotsC[i].getY();
+            int diffX = Math.abs(rx - ax);
+            int diffY = Math.abs(ry - ay);
+            if ((diffX == 1 && diffY == 0) || (diffX == 0 && diffY == 1)) {
+                player.addLife(-50);
+            }
+        }
+        // X-Robot → Player A hasar
+        for (int i = 0; i < robotCount; i++) {
+            int rx = robots[i].getX();
+            int ry = robots[i].getY();
+            int diffX = Math.abs(rx - ax);
+            int diffY = Math.abs(ry - ay);
+            if ((diffX == 1 && diffY == 0) || (diffX == 0 && diffY == 1)) {
+                player.addLife(-50);
             }
         }
     }
