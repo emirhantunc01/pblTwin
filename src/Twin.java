@@ -30,12 +30,15 @@ public class Twin {
     public RobotX[] robots = new RobotX[MAX_ROBOTS];
     public int robotCount = 0;
 
+    public RobotC[] robotsC = new RobotC[MAX_ROBOTS];
+    public int robotCCount = 0;
+
     int loopCounter = 0;
     Random rnd = new Random();
 
     public Twin() throws Exception {
 
-        // --- Başlangıç Menüsü ---
+        // --- Starting Menu ---
         Scanner scanner = new Scanner(System.in);
         boolean mazeReady = false;
 
@@ -43,25 +46,25 @@ public class Twin {
             System.out.println("========================================");
             System.out.println("           TWINS GAME");
             System.out.println("========================================");
-            System.out.println("  1 - Rastgele Labirent Olustur");
-            System.out.println("  2 - Dosyadan Labirent Yukle (.txt)");
+            System.out.println("  1 - Generate Random Maze");
+            System.out.println("  2 - Load Maze from File (.txt)");
             System.out.println("========================================");
-            System.out.print("  Seciminiz (1/2): ");
+            System.out.print("  Your choice (1/2): ");
 
             int choice = 0;
             if (scanner.hasNextInt()) {
                 choice = scanner.nextInt();
             }
-            scanner.nextLine(); // satır sonu temizle
+            scanner.nextLine(); // clear end of line
 
             if (choice == 1) {
                 maze = new Maze();
                 maze.generateMaze();
-                System.out.println("  Rastgele labirent olusturuldu!");
+                System.out.println("  Random maze generated!");
                 mazeReady = true;
 
             } else if (choice == 2) {
-                System.out.print("  Dosya yolunu girin: ");
+                System.out.print("  Enter file path: ");
                 String path = scanner.nextLine().trim();
 
                 try {
@@ -69,18 +72,18 @@ public class Twin {
                     String error = maze.validate();
                     if (error != null) {
                         System.out.println("  " + error);
-                        System.out.println("  Lutfen gecerli bir dosya ile tekrar deneyin.\n");
+                        System.out.println("  Please try again with a valid file.\n");
                     } else {
-                        System.out.println("  Labirent basariyla yuklendi!");
+                        System.out.println("  Maze loaded successfully!");
                         mazeReady = true;
                     }
                 } catch (Exception e) {
-                    System.out.println("  Hata: Dosya okunamadi! (" + e.getMessage() + ")");
-                    System.out.println("  Lutfen gecerli bir dosya yolu girin.\n");
+                    System.out.println("  Error: Could not read file! (" + e.getMessage() + ")");
+                    System.out.println("  Please enter a valid file path.\n");
                 }
 
             } else {
-                System.out.println("  Gecersiz secim! Lutfen 1 veya 2 girin.\n");
+                System.out.println("  Invalid choice! Please enter 1 or 2.\n");
             }
         }
         scanner.close();
@@ -146,6 +149,7 @@ public class Twin {
 
             checkItemPickup();
             laser.update();
+            checkLaserRobotCollision();
 
             loopCounter++;
 
@@ -153,6 +157,9 @@ public class Twin {
 
                 for (int i = 0; i < robotCount; i++) {
                     robots[i].move();
+                }
+                for (int i = 0; i < robotCCount; i++) {
+                    robotsC[i].move(player.getAX(), player.getAY(), player.getBX(), player.getBY());
                 }
             }
 
@@ -199,7 +206,7 @@ public class Twin {
         else if (chance == 9)
             spawnRobotX(x, y);
         else
-            spawnRobotX(x, y); // X-Robot
+            spawnRobotC(x, y); // C-Robot
     }
 
     // Adding treasure
@@ -218,6 +225,15 @@ public class Twin {
             RobotX bot = new RobotX(cn, x, y);
             robots[robotCount] = bot;
             robotCount++;
+            bot.draw();
+        }
+    }
+
+    // Adding C-Robot
+    private void spawnRobotC(int x, int y) {
+        if (robotCCount < MAX_ROBOTS) {
+            RobotC bot = new RobotC(cn, x, y);
+            robotsC[robotCCount++] = bot;
             bot.draw();
         }
     }
@@ -255,7 +271,10 @@ public class Twin {
     }
 
     private boolean isOccupied(int x, int y) {
-        // check trasures
+        // check player positions
+        if (x == player.getAX() && y == player.getAY()) return true;
+        if (x == player.getBX() && y == player.getBY()) return true;
+        // check treasures
         for (int i = 0; i < itemCount; i++) {
             if (items[i].getX() == x && items[i].getY() == y)
                 return true;
@@ -265,7 +284,31 @@ public class Twin {
             if (robots[i].getX() == x && robots[i].getY() == y)
                 return true;
         }
+        // check C-robots
+        for (int i = 0; i < robotCCount; i++) {
+            if (robotsC[i].getX() == x && robotsC[i].getY() == y)
+                return true;
+        }
 
         return false;
+    }
+
+    private void checkLaserRobotCollision() {
+        for (int i = 0; i < robotCount; i++) {
+            if (laser.isNeighborToLaser(robots[i].getX(), robots[i].getY())) {
+                robots[i].erase();
+                robotCount--;
+                robots[i] = robots[robotCount];
+                i--;
+            }
+        }
+        for (int i = 0; i < robotCCount; i++) {
+            if (laser.isNeighborToLaser(robotsC[i].getX(), robotsC[i].getY())) {
+                robotsC[i].erase();
+                robotCCount--;
+                robotsC[i] = robotsC[robotCCount];
+                i--;
+            }
+        }
     }
 }

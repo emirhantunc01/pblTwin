@@ -23,7 +23,7 @@ public class Player {
         //
         ax = 5;
         ay = 5;
-        while (Maze.map[ay][ax] == '#') {
+        while (ay < Maze.ROWS - 1 && Maze.map[ay][ax] == '#') {
             ax++;
             if (ax >= Maze.COLS - 1) {
                 ax = 1;
@@ -31,8 +31,17 @@ public class Player {
             }
         }
 
-        bx = ax;
-        by = ay;
+        // B'yi A'dan farklı komşu boş hücreye koy
+        if (ax + 1 < Maze.COLS && Maze.map[ay][ax + 1] != '#') {
+            bx = ax + 1;
+            by = ay;
+        } else if (ay + 1 < Maze.ROWS && Maze.map[ay + 1][ax] != '#') {
+            bx = ax;
+            by = ay + 1;
+        } else {
+            bx = ax;
+            by = ay;
+        }
     }
 
     public void move(int key) {
