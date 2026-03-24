@@ -182,7 +182,7 @@ public class Twin {
 
     public void addRandomSpawn() {
 
-        if (itemCount >= MAX_ITEMS || robotCount >= MAX_ROBOTS)
+        if (itemCount >= MAX_ITEMS || robotCount >= MAX_ROBOTS || robotCCount >= MAX_ROBOTS)
             return;
 
         int x, y;
