@@ -45,11 +45,11 @@ public class RobotC {
         if (nx < 0 || nx >= Maze.COLS || ny < 0 || ny >= Maze.ROWS) return false;
         if (Maze.map[ny][nx] == '#') return false;
 
-        // Diğer RobotX'lerle çarpışma
+        // Collision with other RobotXs
         for (int i = 0; i < robotCount; i++) {
             if (robots[i].getX() == nx && robots[i].getY() == ny) return false;
         }
-        // Diğer RobotC'lerle çarpışma (kendisi hariç)
+        // Collision with other RobotCs (excluding self)
         for (int i = 0; i < robotCCount; i++) {
             if (robotsC[i] == this) continue;
             if (robotsC[i].getX() == nx && robotsC[i].getY() == ny) return false;
@@ -61,7 +61,7 @@ public class RobotC {
     public void move(Item[] items, int itemCount, RobotX[] robots, int robotCount,
                      RobotC[] robotsC, int robotCCount) {
 
-        // En yakın hazineyi Manhattan mesafesiyle bul ('1', '2', '3')
+        // Find nearest treasure using Manhattan distance ('1', '2', '3')
         int bestDist = Integer.MAX_VALUE;
         int targetX = -1;
         int targetY = -1;
@@ -82,7 +82,7 @@ public class RobotC {
         int nextY = y;
 
         if (targetX != -1) {
-            // Hedefe doğru yönlü hareket
+            // Directional movement towards target
             int dx = 0;
             int dy = 0;
             if (targetX > x) dx = 1;
@@ -90,7 +90,7 @@ public class RobotC {
             if (targetY > y) dy = 1;
             else if (targetY < y) dy = -1;
 
-            // Önce tercih edilen yönde dene, geçersizse diğerlerini sırayla dene
+            // Try preferred direction first, if invalid try others sequentially
             int[][] tries = {
                 {dx, 0}, {0, dy}, {0, -dy}, {-dx, 0}
             };
@@ -110,10 +110,10 @@ public class RobotC {
                 }
             }
             if (!moved) {
-                // Yerinde kal
+                // Stay in place
             }
         } else {
-            // Hazine yoksa RobotX gibi rastgele hareket
+            // If no treasure, random movement like RobotX
             if (rnd.nextInt(100) < 25) {
                 direction = rnd.nextInt(4);
             }

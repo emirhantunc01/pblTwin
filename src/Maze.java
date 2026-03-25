@@ -26,7 +26,7 @@ public class Maze {
         }
     }
 
-    // --- Dosyadan Yükleme ---
+    // --- Load from File ---
     public static Maze loadFromFile(String path) throws Exception {
         resetMap(); // Ensure map is clean before loading
         Maze maze = new Maze();
@@ -41,42 +41,42 @@ public class Maze {
         }
         br.close();
         
-        if (row == 0) throw new Exception("Dosya bos veya okunamadi!");
+        if (row == 0) throw new Exception("File is empty or unreadable!");
         return maze;
     }
 
-    // --- Doğrulama ---
+    // --- Validation ---
     public String validate() {
-        // 1) Boyut kontrolü — dosyadan yüklendiğinde map zaten ROWS x COLS
-        // ama dosya içeriğinin doğru doldurulup doldurulmadığını kontrol edelim
+        // 1) Size check — map is already ROWS x COLS when loaded from file
+        // but let's check if the file content was properly filled
 
-        // 2) Dış çerçeve kontrolü
+        // 2) Outer border check
         for (int x = 0; x < COLS; x++) {
             if (map[0][x] != '#')
-                return "Hata: Ust cerceve eksik! (satir 0, sutun " + x + ")";
+                return "Error: Top border missing! (row 0, col " + x + ")";
             if (map[ROWS - 1][x] != '#')
-                return "Hata: Alt cerceve eksik! (satir " + (ROWS - 1) + ", sutun " + x + ")";
+                return "Error: Bottom border missing! (row " + (ROWS - 1) + ", col " + x + ")";
         }
         for (int y = 0; y < ROWS; y++) {
             if (map[y][0] != '#')
-                return "Hata: Sol cerceve eksik! (satir " + y + ", sutun 0)";
+                return "Error: Left border missing! (row " + y + ", col 0)";
             if (map[y][COLS - 1] != '#')
-                return "Hata: Sag cerceve eksik! (satir " + y + ", sutun " + (COLS - 1) + ")";
+                return "Error: Right border missing! (row " + y + ", col " + (COLS - 1) + ")";
         }
 
-        // 3) Bağlantılılık kontrolü
+        // 3) Connectivity check
         if (!isConnected()) {
-            return "Hata: Labirentte erisilemeyen bos alanlar var! Tum bosluklar baglantili olmali.";
+            return "Error: There are unreachable empty areas in the maze! All empty spaces must be connected.";
         }
 
-        return null; // Geçerli
+        return null; // Valid
     }
 
-    // --- Flood-Fill Bağlantılılık Kontrolü ---
+    // --- Flood-Fill Connectivity Check ---
     public boolean isConnected() {
         boolean[][] visited = new boolean[ROWS][COLS];
 
-        // İlk boş hücreyi bul
+        // Find the first empty cell
         int startY = -1, startX = -1;
         int totalEmpty = 0;
 
@@ -93,9 +93,9 @@ public class Maze {
         }
 
         if (totalEmpty == 0)
-            return true; // Tamamen duvar — geçerli sayılır
+            return true; // Completely wall — considered valid
 
-        // Flood-fill (iteratif — stack overflow riski yok)
+        // Flood-fill (iterative — no stack overflow risk)
         int[] stackY = new int[ROWS * COLS];
         int[] stackX = new int[ROWS * COLS];
         int top = 0;
@@ -131,11 +131,11 @@ public class Maze {
         return reachable == totalEmpty;
     }
 
-    // --- Rastgele Labirent Oluşturma ---
+    // --- Random Maze Generation ---
     public void generateMaze() {
         int attempts = 0;
         do {
-            // Haritayı sıfırla
+            // Reset map
             for (int y = 0; y < ROWS; y++) {
                 for (int x = 0; x < COLS; x++) {
                     if (y == 0 || y == ROWS - 1 || x == 0 || x == COLS - 1) {

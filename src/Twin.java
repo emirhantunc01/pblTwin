@@ -164,9 +164,9 @@ public class Twin {
                     
                     if (e instanceof java.io.FileNotFoundException) {
                         cn.getTextWindow().setCursorPosition(5, 16);
-                        cn.getTextWindow().output("  * IDE klasoru: " + System.getProperty("user.dir"));
+                        cn.getTextWindow().output("  * IDE folder: " + System.getProperty("user.dir"));
                         cn.getTextWindow().setCursorPosition(5, 17);
-                        cn.getTextWindow().output("  Lutfen tam yolu yazin (C:\\Users\\...\\maze.txt)");
+                        cn.getTextWindow().output("  Please enter full path (C:\\Users\\...\\maze.txt)");
                     }
                     Thread.sleep(5000);
                 }
@@ -237,24 +237,24 @@ public class Twin {
                 keypr = 0;
             }
 
-            if (mousepr == 1) {
-                int px = mousex;
-                int py = mousey;
-                // Sınırların içine tıklanıp tıklanmadığını kontrol et (en dış duvarlar hariç)
-                if (px > 0 && px < Maze.COLS - 1 && py > 0 && py < Maze.ROWS - 1) {
-                    // Boş alana tıklandıysa ve üzerinde bir şey yoksa duvar ekle
-                    if (Maze.map[py][px] == ' ' && !isOccupied(px, py)) {
-                        Maze.map[py][px] = '#';
-                        cn.getTextWindow().output(px, py, '#');
-                    } 
-                    // Mevcut bir duvara tıklandıysa duvarı sil
-                    else if (Maze.map[py][px] == '#') {
-                        Maze.map[py][px] = ' ';
-                        cn.getTextWindow().output(px, py, ' ');
-                    }
-                }
-                mousepr = 0;
-            }
+//            if (mousepr == 1) {
+//                int px = mousex;
+//                int py = mousey;
+//                // Check if clicked inside bounds (excluding outer walls)
+//                if (px > 0 && px < Maze.COLS - 1 && py > 0 && py < Maze.ROWS - 1) {
+//                    // If clicked on an empty space with nothing on it, add a wall
+//                    if (Maze.map[py][px] == ' ' && !isOccupied(px, py)) {
+//                        Maze.map[py][px] = '#';
+//                        cn.getTextWindow().output(px, py, '#');
+//                    } 
+//                    // If clicked on an existing wall, remove it
+//                    else if (Maze.map[py][px] == '#') {
+//                        Maze.map[py][px] = ' ';
+//                        cn.getTextWindow().output(px, py, ' ');
+//                    }
+//                }
+//                mousepr = 0;
+//            }
 
             checkItemPickup();
             checkRobotItemPickup();
@@ -262,7 +262,7 @@ public class Twin {
             checkLaserRobotCollision();
             checkRobotPlayerDamage();
 
-            // Game Over kontrolü
+            // Game Over check
             if (player.getLife() <= 0) {
                 gameRunning = false;
                 break;
@@ -293,14 +293,14 @@ public class Twin {
             cn.getTextWindow().setCursorPosition(55, 5);
             cn.getTextWindow().output("P.Laser: " + laser.getPackedCount() + "  ");
 
-            // C-Robot bilgileri
+            // C-Robot stats
             int totalCScore = 0;
             int totalCLife = 0;
             for (int i = 0; i < robotCCount; i++) {
                 totalCScore += robotsC[i].getScore();
                 totalCLife += robotsC[i].getLife();
             }
-            // X-Robot bilgileri
+            // X-Robot stats
             int totalXScore = 0;
             int totalXLife = 0;
             for (int i = 0; i < robotCount; i++) {
@@ -317,7 +317,7 @@ public class Twin {
             Thread.sleep(50);
         }
 
-        // Game Over ekranı
+        // Game Over screen
         cn.getTextWindow().setCursorPosition(20, 12);
         cn.getTextWindow().output("========== GAME OVER ==========");
         cn.getTextWindow().setCursorPosition(20, 13);
@@ -438,7 +438,7 @@ public class Twin {
     }
 
     private void checkLaserRobotCollision() {
-        // RobotX: lazer temas halinde 50 HP hasar/tick
+        // RobotX: takes 50 HP damage/tick upon laser contact
         for (int i = 0; i < robotCount; i++) {
             if (laser.isNeighborToLaser(robots[i].getX(), robots[i].getY())) {
                 robots[i].addLife(-50);
@@ -451,7 +451,7 @@ public class Twin {
                 }
             }
         }
-        // RobotC: lazer temas halinde 50 HP hasar/tick
+        // RobotC: takes 50 HP damage/tick upon laser contact
         for (int i = 0; i < robotCCount; i++) {
             if (laser.isNeighborToLaser(robotsC[i].getX(), robotsC[i].getY())) {
                 robotsC[i].addLife(-50);
@@ -467,14 +467,14 @@ public class Twin {
     }
 
     private void checkRobotItemPickup() {
-        // C-Robot hazine toplama
+        // C-Robot treasure collection
         for (int r = 0; r < robotCCount; r++) {
             int rx = robotsC[r].getX();
             int ry = robotsC[r].getY();
             for (int i = 0; i < itemCount; i++) {
                 if (items[i].getX() == rx && items[i].getY() == ry) {
                     char type = items[i].getType();
-                    // Hazineler bilgisayar için 3x değerli
+                    // Treasures are worth 3x for computers
                     if (type == '1') {
                         robotsC[r].addScore(9);   // 3 * 3
                     } else if (type == '2') {
@@ -490,14 +490,14 @@ public class Twin {
                 }
             }
         }
-        // X-Robot hazine toplama
+        // X-Robot treasure collection
         for (int r = 0; r < robotCount; r++) {
             int rx = robots[r].getX();
             int ry = robots[r].getY();
             for (int i = 0; i < itemCount; i++) {
                 if (items[i].getX() == rx && items[i].getY() == ry) {
                     char type = items[i].getType();
-                    // Hazineler bilgisayar için 3x değerli
+                    // Treasures are worth 3x for computers
                     if (type == '1') {
                         robots[r].addScore(9);   // 3 * 3
                     } else if (type == '2') {
@@ -518,7 +518,7 @@ public class Twin {
     private void checkRobotPlayerDamage() {
         int ax = player.getAX();
         int ay = player.getAY();
-        // C-Robot → Player A hasar
+        // C-Robot -> Player A damage
         for (int i = 0; i < robotCCount; i++) {
             int rx = robotsC[i].getX();
             int ry = robotsC[i].getY();
@@ -528,7 +528,7 @@ public class Twin {
                 player.addLife(-50);
             }
         }
-        // X-Robot → Player A hasar
+        // X-Robot -> Player A damage
         for (int i = 0; i < robotCount; i++) {
             int rx = robots[i].getX();
             int ry = robots[i].getY();

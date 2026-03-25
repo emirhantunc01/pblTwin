@@ -31,7 +31,7 @@ public class Player {
             }
         }
 
-        // B'yi A'dan farklı komşu boş hücreye koy
+        // Place B in a different adjacent empty cell from A
         if (ax + 1 < Maze.COLS && Maze.map[ay][ax + 1] != '#') {
             bx = ax + 1;
             by = ay;
