@@ -11,6 +11,10 @@ public class Maze {
     private Random rnd = new Random();
 
     public Maze() {
+        resetMap();
+    }
+
+    public static void resetMap() {
         for (int y = 0; y < ROWS; y++) {
             for (int x = 0; x < COLS; x++) {
                 if (y == 0 || y == ROWS - 1 || x == 0 || x == COLS - 1) {
@@ -24,6 +28,7 @@ public class Maze {
 
     // --- Dosyadan Yükleme ---
     public static Maze loadFromFile(String path) throws Exception {
+        resetMap(); // Ensure map is clean before loading
         Maze maze = new Maze();
         BufferedReader br = new BufferedReader(new FileReader(path));
         String line;
@@ -35,6 +40,8 @@ public class Maze {
             row++;
         }
         br.close();
+        
+        if (row == 0) throw new Exception("Dosya bos veya okunamadi!");
         return maze;
     }
 

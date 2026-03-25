@@ -5,7 +5,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import enigma.console.Console;
 import java.util.Random;
-import java.util.Scanner;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Twin {
     public Console cn;
@@ -38,57 +38,146 @@ public class Twin {
 
     public Twin() throws Exception {
 
+        // --- Enigma ---
+        cn = Enigma.getConsole("Twins Game", 100, 30, 20);
+
         // --- Starting Menu ---
-        Scanner scanner = new Scanner(System.in);
         boolean mazeReady = false;
 
-        while (!mazeReady) {
-            System.out.println("========================================");
-            System.out.println("           TWINS GAME");
-            System.out.println("========================================");
-            System.out.println("  1 - Generate Random Maze");
-            System.out.println("  2 - Load Maze from File (.txt)");
-            System.out.println("========================================");
-            System.out.print("  Your choice (1/2): ");
-
-            int choice = 0;
-            if (scanner.hasNextInt()) {
-                choice = scanner.nextInt();
+        // Temporary key listener for menu
+        final ConcurrentLinkedQueue<KeyEvent> keyEvents = new ConcurrentLinkedQueue<>();
+        KeyListener menuKlis = new KeyListener() {
+            public void keyTyped(KeyEvent e) {
+                keyEvents.add(e);
             }
-            scanner.nextLine(); // clear end of line
+            public void keyPressed(KeyEvent e) {
+                keyEvents.add(e);
+            }
+            public void keyReleased(KeyEvent e) {}
+        };
+        cn.getTextWindow().addKeyListener(menuKlis);
 
-            if (choice == 1) {
+        while (!mazeReady) {
+            // Clear screen
+            for (int row = 0; row < 30; row++) {
+                cn.getTextWindow().setCursorPosition(0, row);
+                cn.getTextWindow().output("                                                                                                    ");
+            }
+
+            cn.getTextWindow().setCursorPosition(5, 3);
+            cn.getTextWindow().output("========================================");
+            cn.getTextWindow().setCursorPosition(5, 4);
+            cn.getTextWindow().output("           TWINS GAME");
+            cn.getTextWindow().setCursorPosition(5, 5);
+            cn.getTextWindow().output("========================================");
+            cn.getTextWindow().setCursorPosition(5, 6);
+            cn.getTextWindow().output("  1 - Generate Random Maze");
+            cn.getTextWindow().setCursorPosition(5, 7);
+            cn.getTextWindow().output("  2 - Load Maze from File (.txt)");
+            cn.getTextWindow().setCursorPosition(5, 8);
+            cn.getTextWindow().output("========================================");
+            cn.getTextWindow().setCursorPosition(5, 9);
+            cn.getTextWindow().output("  Your choice (1/2): ");
+
+            // Wait for key press
+            keyEvents.clear();
+            int choice = 0;
+            while (choice == 0) {
+                KeyEvent e = keyEvents.poll();
+                if (e != null && e.getID() == KeyEvent.KEY_PRESSED) {
+                    choice = e.getKeyCode();
+                } else {
+                    Thread.sleep(10);
+                }
+            }
+
+            if (choice == KeyEvent.VK_1) {
                 maze = new Maze();
                 maze.generateMaze();
-                System.out.println("  Random maze generated!");
+                cn.getTextWindow().setCursorPosition(5, 11);
+                cn.getTextWindow().output("  Random maze generated!");
+                Thread.sleep(1000);
                 mazeReady = true;
 
-            } else if (choice == 2) {
-                System.out.print("  Enter file path: ");
-                String path = scanner.nextLine().trim();
+            } else if (choice == KeyEvent.VK_2) {
+                cn.getTextWindow().setCursorPosition(5, 11);
+                cn.getTextWindow().output("  Enter file path: ");
+
+                StringBuilder pathBuilder = new StringBuilder();
+                boolean pathDone = false;
+                keyEvents.clear();
+                
+                while (!pathDone) {
+                    KeyEvent e = keyEvents.poll();
+                    if (e != null) {
+                        if (e.getID() == KeyEvent.KEY_PRESSED) {
+                            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                                pathDone = true;
+                            } else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+                                if (pathBuilder.length() > 0) {
+                                    pathBuilder.deleteCharAt(pathBuilder.length() - 1);
+                                }
+                            }
+                        } else if (e.getID() == KeyEvent.KEY_TYPED) {
+                            char c = e.getKeyChar();
+                            if (c >= 32 && c <= 126) {
+                                pathBuilder.append(c);
+                            }
+                        }
+                        // Refresh path display
+                        cn.getTextWindow().setCursorPosition(24, 11);
+                        cn.getTextWindow().output(pathBuilder.toString() + "             ");
+                    } else {
+                        Thread.sleep(10);
+                    }
+                }
+                String path = pathBuilder.toString().trim();
+                
+                // Automatic .txt extension matching
+                java.io.File file = new java.io.File(path);
+                if (!file.exists() && !path.toLowerCase().endsWith(".txt")) {
+                    // Try appending .txt directly
+                    path += ".txt";
+                }
 
                 try {
                     maze = Maze.loadFromFile(path);
                     String error = maze.validate();
                     if (error != null) {
-                        System.out.println("  " + error);
-                        System.out.println("  Please try again with a valid file.\n");
+                        cn.getTextWindow().setCursorPosition(5, 13);
+                        cn.getTextWindow().output("  Val. Error: " + error);
+                        Thread.sleep(3000);
                     } else {
-                        System.out.println("  Maze loaded successfully!");
+                        cn.getTextWindow().setCursorPosition(5, 13);
+                        cn.getTextWindow().output("  Maze loaded: " + path);
+                        Thread.sleep(1000);
                         mazeReady = true;
                     }
                 } catch (Exception e) {
-                    System.out.println("  Error: Could not read file! (" + e.getMessage() + ")");
-                    System.out.println("  Please enter a valid file path.\n");
+                    cn.getTextWindow().setCursorPosition(5, 13);
+                    cn.getTextWindow().output("  Load Error (tried: " + path + "):");
+                    cn.getTextWindow().setCursorPosition(5, 14);
+                    
+                    String msg = e.getMessage();
+                    if (msg != null && msg.length() > 60) msg = msg.substring(0, 60) + "...";
+                    cn.getTextWindow().output("  " + msg);
+                    
+                    if (e instanceof java.io.FileNotFoundException) {
+                        cn.getTextWindow().setCursorPosition(5, 16);
+                        cn.getTextWindow().output("  * IDE klasoru: " + System.getProperty("user.dir"));
+                        cn.getTextWindow().setCursorPosition(5, 17);
+                        cn.getTextWindow().output("  Lutfen tam yolu yazin (C:\\Users\\...\\maze.txt)");
+                    }
+                    Thread.sleep(5000);
                 }
 
             } else {
-                System.out.println("  Invalid choice! Please enter 1 or 2.\n");
+                cn.getTextWindow().setCursorPosition(5, 11);
+                cn.getTextWindow().output("  Invalid choice! Please enter 1 or 2.");
+                Thread.sleep(1500);
             }
         }
-        scanner.close();
-        // --- Enigma---
-        cn = Enigma.getConsole("Twins Game", 100, 30, 20);
+        cn.getTextWindow().removeKeyListener(menuKlis);
 
         tmlis = new TextMouseListener() {
             public void mouseClicked(TextMouseEvent arg0) {
@@ -162,7 +251,7 @@ public class Twin {
 
             loopCounter++;
 
-            if (loopCounter % 4 == 0) {
+            if (loopCounter % 8 == 0) {
 
                 for (int i = 0; i < robotCount; i++) {
                     robots[i].move();
