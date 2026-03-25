@@ -237,6 +237,25 @@ public class Twin {
                 keypr = 0;
             }
 
+            if (mousepr == 1) {
+                int px = mousex;
+                int py = mousey;
+                // Sınırların içine tıklanıp tıklanmadığını kontrol et (en dış duvarlar hariç)
+                if (px > 0 && px < Maze.COLS - 1 && py > 0 && py < Maze.ROWS - 1) {
+                    // Boş alana tıklandıysa ve üzerinde bir şey yoksa duvar ekle
+                    if (Maze.map[py][px] == ' ' && !isOccupied(px, py)) {
+                        Maze.map[py][px] = '#';
+                        cn.getTextWindow().output(px, py, '#');
+                    } 
+                    // Mevcut bir duvara tıklandıysa duvarı sil
+                    else if (Maze.map[py][px] == '#') {
+                        Maze.map[py][px] = ' ';
+                        cn.getTextWindow().output(px, py, ' ');
+                    }
+                }
+                mousepr = 0;
+            }
+
             checkItemPickup();
             checkRobotItemPickup();
             laser.update();
