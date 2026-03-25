@@ -3,10 +3,20 @@ import enigma.console.TextAttributes;
 import java.awt.Color;
 import java.util.Random;
 
+/**
+ * RobotC.java
+ * Represents the intelligent computer-controlled enemy (Type C).
+ * This robot actively searches for the nearest uncollected treasure
+ * using the Manhattan distance algorithm and navigates towards it.
+ * If no treasures are present, it reverts to random movement.
+ */
 public class RobotC {
+    // --- Constants ---
+    public static final int RANDOM_MOVE_CHANCE = 25; // 25% chance to change direction when idle
+    public static final int INITIAL_MAX_HP = 1000;
     private int x, y;
     private int direction;
-    private int life = 1000;
+    private int life = INITIAL_MAX_HP;
     private int score = 0;
     private Console cn;
     private Random rnd = new Random();
@@ -62,6 +72,11 @@ public class RobotC {
                      RobotC[] robotsC, int robotCCount) {
 
         // Find nearest treasure using Manhattan distance ('1', '2', '3')
+        // The Manhattan distance (or Taxicab geometry) calculates the distance 
+        // between two points in a grid based on a strictly horizontal/vertical path:
+        // distance = |x1 - x2| + |y1 - y2|
+        // Here we iterate all items to find the global minimum distance, essentially
+        // acting as a localized pathfinding heuristic to pick a target goal.
         int bestDist = Integer.MAX_VALUE;
         int targetX = -1;
         int targetY = -1;
@@ -114,7 +129,7 @@ public class RobotC {
             }
         } else {
             // If no treasure, random movement like RobotX
-            if (rnd.nextInt(100) < 25) {
+            if (rnd.nextInt(100) < RANDOM_MOVE_CHANCE) {
                 direction = rnd.nextInt(4);
             }
 

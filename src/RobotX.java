@@ -3,10 +3,16 @@ import enigma.console.Console;
 import enigma.console.TextAttributes;
 import java.awt.Color;
 
+/**
+ * RobotX.java
+ * Represents the standard enemy that moves randomly and tries to block or damage the player.
+ */
 public class RobotX {
+    public static final int RANDOM_MOVE_CHANCE = 25;
+    public static final int INITIAL_MAX_HP = 1000;
     private int x, y;
     private int direction;
-    private int life = 1000;
+    private int life = INITIAL_MAX_HP;
     private int score = 0;
     private Console cn;
     private Random rnd = new Random();
@@ -32,7 +38,7 @@ public class RobotX {
 
     public void move() {
 
-        if (rnd.nextInt(100) < 25) {
+        if (rnd.nextInt(100) < RANDOM_MOVE_CHANCE) {
             direction = rnd.nextInt(4);
         }
 

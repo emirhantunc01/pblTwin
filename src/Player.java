@@ -3,11 +3,17 @@ import enigma.console.TextAttributes;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 
+/**
+ * Player.java
+ * Represents the player-controlled entity (Twin A and Twin B).
+ * Handles movement logic, mode switching (M key), and stat tracking.
+ */
 public class Player {
+    public static final int INITIAL_MAX_HP = 1000;
 
     private int ax, ay;
     private int bx, by;
-    private int life = 1000;
+    private int life = INITIAL_MAX_HP;
     private int score = 0;
     private int mode = 1;
 

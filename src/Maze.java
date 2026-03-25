@@ -3,6 +3,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import enigma.console.Console;
 
+/**
+ * Maze.java
+ * Handles the game's map structure, boundaries, and validation.
+ * Supports loading layouts from a text file, validating strict boundary requirements,
+ * and ensuring that all empty areas are fully connected via a Flood-Fill algorithm.
+ */
 public class Maze {
     public static final int ROWS = 23;
     public static final int COLS = 53;
@@ -96,6 +102,9 @@ public class Maze {
             return true; // Completely wall — considered valid
 
         // Flood-fill (iterative — no stack overflow risk)
+        // We use a manual stack structure (arrays for X and Y) to explore all
+        // connected empty cells recursively. If the total explored cells equal
+        // the total empty cells counted earlier, it means no areas are isolated.
         int[] stackY = new int[ROWS * COLS];
         int[] stackX = new int[ROWS * COLS];
         int top = 0;
