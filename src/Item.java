@@ -2,6 +2,11 @@ import enigma.console.Console;
 import enigma.console.TextAttributes;
 import java.awt.Color;
 
+/**
+ * Item.java
+ * Represents collectible items on the map, such as Treasures ('1', '2', '3')
+ * and Laser pickups ('@').
+ */
 public class Item {
     private int x,y;
     private char type; // '1', '2', '3', '@'

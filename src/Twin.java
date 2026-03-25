@@ -7,7 +7,17 @@ import enigma.console.Console;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/**
+ * Twin.java
+ * The main game engine class. Handles the Enigma console window setup,
+ * starting menu logic, main game loop, rendering, collision detection, and score/life management.
+ */
 public class Twin {
+    // --- Game Constants ---
+    public static final int ROBOT_CONTACT_DAMAGE = 50;
+    public static final int LASER_DAMAGE = 50;
+    public static final int ROBOT_DESTROY_SCORE = 100;
+
     public Console cn;
     public TextMouseListener tmlis;
     public KeyListener klis;
@@ -438,26 +448,26 @@ public class Twin {
     }
 
     private void checkLaserRobotCollision() {
-        // RobotX: takes 50 HP damage/tick upon laser contact
+        // RobotX: takes damage upon laser contact
         for (int i = 0; i < robotCount; i++) {
             if (laser.isNeighborToLaser(robots[i].getX(), robots[i].getY())) {
-                robots[i].addLife(-50);
+                robots[i].addLife(-LASER_DAMAGE);
                 if (robots[i].getLife() <= 0) {
                     robots[i].erase();
-                    player.addScore(100);
+                    player.addScore(ROBOT_DESTROY_SCORE);
                     robotCount--;
                     robots[i] = robots[robotCount];
                     i--;
                 }
             }
         }
-        // RobotC: takes 50 HP damage/tick upon laser contact
+        // RobotC: takes damage upon laser contact
         for (int i = 0; i < robotCCount; i++) {
             if (laser.isNeighborToLaser(robotsC[i].getX(), robotsC[i].getY())) {
-                robotsC[i].addLife(-50);
+                robotsC[i].addLife(-LASER_DAMAGE);
                 if (robotsC[i].getLife() <= 0) {
                     robotsC[i].erase();
-                    player.addScore(100);
+                    player.addScore(ROBOT_DESTROY_SCORE);
                     robotCCount--;
                     robotsC[i] = robotsC[robotCCount];
                     i--;
@@ -525,7 +535,7 @@ public class Twin {
             int diffX = Math.abs(rx - ax);
             int diffY = Math.abs(ry - ay);
             if ((diffX == 1 && diffY == 0) || (diffX == 0 && diffY == 1)) {
-                player.addLife(-50);
+                player.addLife(-ROBOT_CONTACT_DAMAGE);
             }
         }
         // X-Robot -> Player A damage
@@ -535,7 +545,7 @@ public class Twin {
             int diffX = Math.abs(rx - ax);
             int diffY = Math.abs(ry - ay);
             if ((diffX == 1 && diffY == 0) || (diffX == 0 && diffY == 1)) {
-                player.addLife(-50);
+                player.addLife(-ROBOT_CONTACT_DAMAGE);
             }
         }
     }

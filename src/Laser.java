@@ -2,6 +2,11 @@ import enigma.console.Console;
 import enigma.console.TextAttributes;
 import java.awt.Color;
 
+/**
+ * Laser.java
+ * Manages the laser mechanics, including firing, tracking active shots,
+ * checking collisions, and rendering the laser paths.
+ */
 public class Laser {
 
     public static final int MAX_BLOCKS = 300;
